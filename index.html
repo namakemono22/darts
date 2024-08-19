@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ダーツゲーム</title>
+<style>
+:root
+{
+    --speed: 1s;
+    --ball_diameter: 40px/*ballの直径*/
+}
+body
+{
+    font-family: Arial, sans-serif;
+    text-align: center;
+    margin: 0;
+    padding: 20px;
+    background-color: #535353;
+}
+#d
+{
+    width: 450px;
+    height: 450px;
+    position: relative;
+}
+#restart_button
+{
+    font-size: 30px;
+    opacity: 0.8;
+}
+h2
+{
+    color: azure;
+}
+#dartboard
+{
+    width: 450px;
+    height: 450px;
+}
+.dart
+{
+    position: absolute;
+    z-index: 10;
+}
+#game-container
+{
+    display: flex;
+    width: 100%;
+    align-items: center; /* 縦方向の中央揃え */
+    justify-content: center; /* 横方向の中央揃え */
+    position: relative;
+}
+#game
+{
+    cursor: pointer;
+}
+#info
+{
+    width: 30%;
+    display: flex;
+    flex-direction: column; /* 情報を縦に並べる */
+    justify-content: center; /* 情報エリア内の内容を中央揃え */
+    color: azure;
+}
+
+.meter_text
+{
+    font-size: 20px;
+}
+.meter_left
+{
+    margin-top: -25px; /* 上に150px移動*/
+    margin-left: -350px;
+}
+.meter_right
+{
+    margin-top: 10px; /* 上に150px移動*/
+    margin-left: 350px;
+}
+#meter-container_1,#meter-container_2,#meter-container_3,#meter-container_4,
+#meter-container_5,#meter-container_6,#meter-container_7,#meter-container_8
+{
+    margin: 0 auto;
+    width: 400px;
+    height: var(--ball_diameter);
+    border: 2px solid #000;
+    border-radius: 25px;
+    background-color: rgba(255, 255, 255, 0.5); /* 半透明の白色 */
+    position: relative;
+    overflow: hidden;
+}
+#ball_1,#ball_2,#ball_3,#ball_4,#ball_5,#ball_6,#ball_7,#ball_8
+{
+    width:  var(--ball_diameter);
+    height:  var(--ball_diameter);
+    background-color: rgba(17, 0, 255, 0.5);
+    position: absolute;
+    top: 0;
+    left: 0;
+    border-radius: 25px;
+}
+
+#meter-container_1
+{
+    margin-top: -246px; /* 上に150px移動*/
+}
+#ball_1
+{
+    animation: moveMeter 2s linear infinite;
+}
+@keyframes moveMeter
+{
+    0% {
+        left: 0;
+    }
+    50% {
+        left: calc(100% -  var(--ball_diameter));
+    }
+    100% {
+        left: 0;
+    }
+}
+#meter-container_2
+{
+    margin-top: -44px; /* 上に150px移動*/
+    transform: rotate(-90deg); /* ここで30度回転させる */
+}
+#ball_2
+{
+    /*animation: moveMeter_2 1.7s linear infinite;*/
+    animation: none;
+    transform: rotate(90deg); /* ここで30度回転させる */
+}
+#meter-container_3
+{
+    margin-top: -43px; /* 上に150px移動*/
+    transform: rotate(-22deg); /* ここで30度回転させる */
+}
+#ball_3
+{
+    animation: none;
+    transform: rotate(22deg); /* ここで30度回転させる */
+}
+#meter-container_4
+{
+    margin-top: -43px; /* 上に150px移動*/
+    transform: rotate(-45deg); /* ここで30度回転させる */
+}
+#ball_4
+{
+    animation: none;
+    transform: rotate(45deg); /* ここで30度回転させる */
+}
+#meter-container_5
+{
+    margin-top: -43px; /* 上に150px移動*/
+    transform: rotate(22deg); /* ここで30度回転させる */
+}
+#ball_5
+{
+    animation: none;
+    transform: rotate(-22deg); /* ここで30度回転させる */
+}
+#meter-container_6
+{
+    margin-top: -43px; /* 上に150px移動*/
+    transform: rotate(45deg); /* ここで30度回転させる */
+}
+#ball_6
+{
+    animation: none;
+    transform: rotate(-45deg); /* ここで30度回転させる */
+}
+#meter-container_7
+{
+    margin-top: -43px; /* 上に150px移動*/
+    transform: rotate(67deg); /* ここで30度回転させる */
+}
+#ball_7
+{
+    animation: none;
+    transform: rotate(-67deg); /* ここで30度回転させる */
+}
+#meter-container_8
+{
+    margin-top: -43px; /* 上に150px移動*/
+    transform: rotate(-67deg); /* ここで30度回転させる */
+}
+#ball_8
+{
+    animation: none;
+    transform: rotate(67deg); /* ここで30度回転させる */
+}
+
+</style>
+<script>
+
+let ball_diameter = 40;//ballの直径
+let count = 1;
+let count_max = 9;
+let xxx = 0;
+let yyy = 0;
+let mousedown_bool = true;
+let anima_speed = [2,1.7,1.4,1.1,1,0.8,0.7,0.6]
+
+document.addEventListener('DOMContentLoaded', () =>
+{
+    // アニメーション開始位置ランダム
+    var www = Math.random() * (0 -(-2.5)) + (-2.5);
+    document.getElementById('ball_1').style.animationDelay = `${www}s`;
+    //クリックした際
+    document.getElementById('game').addEventListener('mousedown', () =>
+    {
+        if(mousedown_bool)
+        {
+            //アニメーション止める
+            document.getElementById(`ball_${count}`).style.animationPlayState = 'paused';
+            //ほんの少し計算するのを遅らせる(じゃないとずれる???)
+            setTimeout(() =>
+            {
+                calculation(document.getElementById(`meter-container_${count}`),document.getElementById(`ball_${count}`),
+                                document.getElementById(`value_x_${count}`),document.getElementById(`value_y_${count}`));
+            }, 40);
+        }
+    });
+});
+//xy計算式
+function calculation(meter,ball,x,y)
+{
+    // メーターコンテナの位置とサイズを取得
+    const containerRect = meter.getBoundingClientRect();
+    // ボールの位置とサイズを取得
+    const ballRect = ball.getBoundingClientRect();
+
+    //メーターの左右真ん中座標
+    const container_center_x = containerRect.right - (containerRect.width/2);
+    //ボールの真ん中座標
+    const ball_center_x = ballRect.right -(ballRect.width/2);
+    //メーターからボールの中心のずれ
+    const aaa = container_center_x - ball_center_x;
+
+    var bbb =  -((aaa /(containerRect.width-(ballRect.width))) * 40);//ballの厚み分引いている
+    // 数値を表示
+    x.textContent = customRound(bbb);
+    xxx += customRound(bbb);
+
+    //メーターの上下真ん中座標
+    const container_center_y = containerRect.bottom - (containerRect.height/2);
+    //ボールの真ん中座標
+    const ball_center_y = ballRect.bottom -(ballRect.height/2);
+    //メーターからボールの中心のずれ
+    const ccc = container_center_y - ball_center_y;
+
+    var ddd =  ((ccc /(containerRect.height-(ballRect.height))) * 40);//ballの厚み分引いている
+    // 数値を表示
+    y.textContent = customRound(ddd);
+    yyy += customRound(ddd);
+
+    mousedown_bool = false;
+
+    if(customRound(bbb)==0&&customRound(ddd)==0)
+    {
+        ball.style.backgroundColor = 'rgba(255, 0, 0, 0.9)';
+    }
+
+    // 0.5秒後に次に行く
+    setTimeout(() =>
+    {
+        ball.style.backgroundColor = 'rgba(17, 0, 255, 0.5)';
+        ball.style.animation = "none";
+
+        // 今メーターを非表示にする
+        document.getElementById(`meter-container_${count}`).style.visibility = 'hidden';
+        // 次メーターを表示にする
+        if(document.getElementById(`meter-container_${count+1}`))
+        {
+            document.getElementById(`meter-container_${count+1}`).style.visibility = 'visible';
+            //animaつける
+            var qqq = document.getElementById(`ball_${count+1}`);
+            qqq.style.animation = `moveMeter ${anima_speed[count-1]}s linear infinite`;
+            var www = Math.random() * (0 -(-2.5)) + (-2.5);
+            qqq.style.animationDelay = `${www}s`; // アニメーションの半分の時間を遅延させる
+        }
+        count += 1;
+        if(count==count_max)//最後にダーツを投げる
+        {
+            document.getElementById('score_x').textContent = xxx;
+            document.getElementById('score_y').textContent = yyy;
+            document.getElementById('restart_button').style.visibility = 'visible';
+            var container = document.getElementById('d');
+            var dart = document.createElement('img');
+            var con_rect = container.getBoundingClientRect();
+            dart.src = 'red.png'; // 追加する画像のパス
+            dart.className = 'dart';
+            // Dart の位置指定
+            const dartSize = 10; // Dart のサイズ（任意のサイズ）
+            dart.style.width = `${dartSize}px`;
+            dart.style.height = `${dartSize}px`;
+            if(Math.abs(xxx*4)>50)
+            {
+                if(xxx<=0)
+                {
+                    xxx=-50;
+                }else{
+                    xxx=50;
+                }
+            }
+            if(Math.abs(yyy*4)>50)
+            {
+                if(yyy<=0)
+                {
+                    yyy=-50;
+                }else{
+                    yyy=50;
+                }
+            }
+            var xx = (xxx*4 + con_rect.width / 2 - dartSize / 2);
+            var yy = (-yyy*4 + con_rect.height / 2 - dartSize / 2);
+            dart.style.left = `${xx}px`; // 水平中央
+            dart.style.top = `${yy}px`;  // 垂直中央
+            container.appendChild(dart);
+        }else{
+            mousedown_bool = true;
+        }
+        }, 500);
+};
+//-1~1=0にする、それ以外四捨五入
+function customRound(num)
+{
+    // -1 から 1 の範囲にある場合は 0 に丸める
+    if (num >= -1 && num <= 1)
+    {
+        return 0;
+    }
+    // それ以外の場合は四捨五入
+    else{
+        return Math.round(num);
+    }
+}
+
+//もう1回
+function restart()
+{
+    count = 1
+    xxx = 0;
+    yyy = 0;
+    document.getElementById('score_x').textContent = xxx;
+    document.getElementById('score_y').textContent = yyy;
+    for(let i=1;i<count_max;i++)
+    {
+        document.getElementById(`value_x_${i}`).textContent = '--';
+        document.getElementById(`value_y_${i}`).textContent = '--';
+    }
+    document.getElementById('restart_button').style.visibility = 'hidden';
+    document.getElementById('meter-container_1').style.visibility = 'visible';
+    document.getElementById('ball_1').style.animation = `moveMeter ${anima_speed[count-1]}s linear infinite`;
+    var www = Math.random() * (0 -(-2.5)) + (-2.5);
+    document.getElementById('ball_1').style.animationDelay = `${www}s`; // アニメーション開始位置ランダム
+    mousedown_bool = true;
+};
+</script>
+</head>
+
+<body>
+<h2>ダーツゲーム</h2>
+<div id="game-container">
+    <div id="game">
+        <div id="d">
+            <img id="dartboard" src="darts2.png">
+        </div>
+        <div id="meter-container_1">
+            <div class="meter_text meter_right">20</div>
+            <div id="ball_1"></div>
+            <div class="meter_text meter_left">-20</div>
+        </div>
+        <div id="meter-container_2" style="visibility:hidden;">
+            <div class="meter_text meter_right">20</div>
+            <div id="ball_2"></div>
+            <div class="meter_text meter_left">-20</div>
+        </div>
+        <div id="meter-container_3" style="visibility:hidden;">
+            <div class="meter_text meter_right">20</div>
+            <div id="ball_3"></div>
+            <div class="meter_text meter_left">-20</div>
+        </div>
+        <div id="meter-container_4" style="visibility:hidden;">
+            <div class="meter_text meter_right">20</div>
+            <div id="ball_4"></div>
+            <div class="meter_text meter_left">-20</div>
+        </div>
+        <div id="meter-container_5" style="visibility:hidden;">
+            <div class="meter_text meter_right">20</div>
+            <div id="ball_5"></div>
+            <div class="meter_text meter_left">-20</div>
+        </div>
+        <div id="meter-container_6" style="visibility:hidden;">
+            <div class="meter_text meter_right">20</div>
+            <div id="ball_6"></div>
+            <div class="meter_text meter_left">-20</div>
+        </div>
+        <div id="meter-container_7" style="visibility:hidden;">
+            <div class="meter_text meter_right">20</div>
+            <div id="ball_7"></div>
+            <div class="meter_text meter_left">-20</div>
+        </div>
+        <div id="meter-container_8" style="visibility:hidden;">
+            <div class="meter_text meter_right">20</div>
+            <div id="ball_8"></div>
+            <div class="meter_text meter_left">-20</div>
+        </div>
+        <button id="restart_button" style="visibility:hidden;" onclick="restart()">もう1回</button>
+    </div>
+    <div id="info">
+        <div>クリック1の数値: x:<span id="value_x_1">--</span>y:<span id="value_y_1">--</span></div>
+        <div>クリック2の数値: x:<span id="value_x_2">--</span>y:<span id="value_y_2">--</span></div>
+        <div>クリック3の数値: x:<span id="value_x_3">--</span>y:<span id="value_y_3">--</span></div>
+        <div>クリック4の数値: x:<span id="value_x_4">--</span>y:<span id="value_y_4">--</span></div>
+        <div>クリック5の数値: x:<span id="value_x_5">--</span>y:<span id="value_y_5">--</span></div>
+        <div>クリック6の数値: x:<span id="value_x_6">--</span>y:<span id="value_y_6">--</span></div>
+        <div>クリック7の数値: x:<span id="value_x_7">--</span>y:<span id="value_y_7">--</span></div>
+        <div>クリック8の数値: x:<span id="value_x_8">--</span>y:<span id="value_y_8">--</span></div>
+        <p>得点: x=<span id="score_x">--</span>y=<span id="score_y">--</span></p>
+    </div>
+</div>
+</body>
+</html>
+
